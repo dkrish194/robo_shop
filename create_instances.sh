@@ -16,6 +16,8 @@ declare -A LEVELS=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
 AMI_ID="ami-0220d79f3f480ecf5"
 SECURITY_GROUP="sg-02a6e8c9e38480783"
 SUCCESS_CODE=0
+DOMAIN_NAME="dasarikrishna.online"
+HOSTED_ZONE="Z08579941T4CEU56ALPQS"
 #FAILURE=1
 
 # --- Functions
@@ -38,7 +40,7 @@ function validate_exit_code(){
     fi
 }
 
-# --- creating Log Directory and log file   
+# --- creating Log Directory and log file
 mkdir -p $LOG_DIR
 touch "$LOG_PATH"
 
@@ -53,7 +55,7 @@ else
     echo -e "number of arguemnts $# "
 
     for arg in "$@" ; do
-        echo -e " Given arguemnts: \t $arg"
+        echo -e " Given arguemnts : \t $arg"
     done
 fi
 
@@ -87,24 +89,48 @@ for instance in "$@"; do
 
     # - get private ip or public ip based on aws instance name
     if [[ $instance == "frontend" ]];then
-        PUBLIC_IP=$(aws ec2 describe-instances \
+        IP_ADDRESS=$(aws ec2 describe-instances \
             --instance-ids "$INSTANCE_ID" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
-        echo -e "PUBLIC_IP is : $PUBLIC_IP"
+        echo -e "PUBLIC_IP is : $IP_ADDRESS"
+        SUB_DOMAIN_NAME="$DOMAIN_NAME"
+        log INFO "sub domain name: $SUB_DOMAIN_NAME"
     else
-        PRIVATE_IP=$(aws ec2 describe-instances \
+        IP_ADDRESS=$(aws ec2 describe-instances \
             --instance-ids $INSTANCE_ID \
             --query 'Reservations[].Instances[].PrivateIpAddress' \
             --output text)
-        echo -e "PRIVATE_IP is : $PRIVATE_IP"
+        echo -e "PRIVATE_IP is : $IP_ADDRESS"
+        SUB_DOMAIN_NAME="${instance}.$DOMAIN_NAME"
+        log INFO "sub domain name: $SUB_DOMAIN_NAME"
+
 
     fi
 
+    cat > record.json <<EOF
+    {
+    "Comment": "DNS update via bash",
+    "Changes": [{
+        "Action": "UPSERT",
+        "ResourceRecordSet": {
+        "Name": "$SUB_DOMAIN_NAME",
+        "Type": "A",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "$IP_ADDRESS" }]
+        }
+                }]
+    }
+EOF
 
-
+    aws route53 change-resource-record-sets \
+        --hosted-zone-id "$HOSTED_ZONE" \
+        --change-batch file://record.json
 done
 
 
-echo -e " ------- SCRIPT ENDED -----------"
 
+
+
+rm -f record.json
+echo -e " ------- SCRIPT ENDED -----------"
