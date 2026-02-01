@@ -116,7 +116,7 @@ for instance in "$@"; do
         "ResourceRecordSet": {
         "Name": "$SUB_DOMAIN_NAME",
         "Type": "A",
-        "TTL": 300,
+        "TTL": 1,
         "ResourceRecords": [{ "Value": "$IP_ADDRESS" }]
         }
                 }]

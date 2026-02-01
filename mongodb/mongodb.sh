@@ -42,6 +42,16 @@ log INFO    "LOG_DIR : $LOG_DIR"
 log INFO    "LOG_FILE : $LOG_FILE"
 log INFO    "LOG_PATH : $LOG_PATH"
 
+# --- check user id if non-root user exit script
+user_id=$(id -u)
+if [[ $user_id -eq 0 ]];then
+    log INFO "USER is root"
+else
+    log INFO "USER is not root, so Exiting Script"
+    exit 1
+fi
+
+
 log INFO "Copying mongodb repo to /etc/yum.repos.d"
 cp mongodb.repo /etc/yum.repos.d/mongo.repo
 
