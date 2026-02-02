@@ -5,6 +5,16 @@ set -o pipefail
 set -o nounset
 trap 'log ERROR "Failed at line $LINE " ' ERR
 
+#SCRIPT_PATH="$0"
+#echo -e "SCRIPT path : $SCRIPT_PATH"
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+echo -e "SCRIPT path : $SCRIPT_PATH"
+echo -e "SCRIPT dir : $SCRIPT_DIR"
+
+#exit 1
 # --- LOG section
 LOG_DIR="/var/log/mangodb_logs"
 LOG_FILE="$(date +'%Y-%B-%d-%A_%H-%M-%S').log"
@@ -12,7 +22,7 @@ LOG_PATH="${LOG_DIR}/${LOG_FILE}"
 LOG_LEVEL="INFO"
 declare -A LEVELS=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
 # Get the directory where the script is actually located
-SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+#SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 MONGODB_HOST="mongodb.dasarikrishna.online"
 # --- Variables
 SUCCESS_CODE=0
@@ -76,6 +86,9 @@ fi
 mkdir -p /app
 log INFO "created app directory"
 
+log INFO "remove /app data before download code"
+rm -rf /app/*
+
 log INFO "downloading and unziping the code into app directory"
 curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
 cd /app 
@@ -89,13 +102,14 @@ if npm install &>> /dev/null ; then
 fi
 
 # --- copy service to systemd
+log INFO "SCRIPT DIR: $SCRIPT_DIR "
 cp "${SCRIPT_DIR}/catalogue.service" /etc/systemd/system/catalogue.service
 
-Log INFO "systemctl daemon relaod"
+log INFO "systemctl daemon relaod"
 systemctl daemon-reload
 
 
-Log INFO "Enable and start service"
+log INFO "Enable and start service"
 if ! systemctl enable catalogue ; then
     log INFO "Enabling catalogue service"
     systemctl enable catalogue
@@ -110,20 +124,27 @@ else
     log INFO "cataloue service already started .. skipping"
 fi
 
+
+# --- copy monodb repo
+cp "${SCRIPT_DIR}/mongo.repo" /etc/yum.repos.d/mongo.repo
+
 # --- installing mongodb package
-if ! dnf install mongodb-mongosh -y ; then
-    log INFO "mongodb package not installed"
+# --- install mongodb package if not installed
+if ! rpm -q mongodb-mongosh &>/dev/null; then
+    log INFO "Installing mongodb-mongosh package"
+    dnf install -y mongodb-mongosh
+    log INFO "mongodb-mongosh package installed"
 else
-    log INFO "mongodb package installed"
+    log INFO "mongodb-mongosh package already installed, skipping"
 fi
 
 INDEX=$(mongosh --host $MONGODB_HOST --quiet  --eval 'db.getMongo().getDBNames().indexOf("catalogue")')
 
 if [[ $INDEX -le 0 ]]; then
     mongosh --host $MONGODB_HOST </app/db/master-data.js
-    VALIDATE $? "Loading products"
+    validate_exit_code $? "Loading products"
 else
-    echo -e "Products already loaded ... $Y SKIPPING $N"
+    echo -e "Products already loaded ...  SKIPPING "
 fi
 
 systemctl restart catalogue
