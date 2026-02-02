@@ -6,7 +6,7 @@ set -o nounset
 trap 'log ERROR "Failed at line $LINE " ' ERR
 
 # --- LOG section
-LOG_DIR="logs"
+LOG_DIR="/var/log/mangodb_logs"
 LOG_FILE="$(date +'%Y-%B-%d-%A_%H-%M-%S').log"
 LOG_PATH="${LOG_DIR}/${LOG_FILE}"
 LOG_LEVEL="INFO"
@@ -21,7 +21,7 @@ function log() {
     local msg="$*"
     [[ ${LEVELS[$level]} -ge ${LEVELS[$LOG_LEVEL]} ]] || return
     local line="$(date '+%F %T') [$level] $msg"
-    echo "$line" | tee -a "$LOG_FILE"
+    echo "$line" | tee -a "$LOG_PATH"
     logger -t my_script "$line"
 }
 
