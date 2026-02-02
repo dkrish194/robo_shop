@@ -61,13 +61,15 @@ sleep 1
 validate_exit_code "$?" "MONGODB PACKAGE INSTALLATION"
 
 # -- enable & start monogdb service
+
 systemctl enable mongod
-sleep 1
 systemctl start mongod
+sleep 1
+
 validate_exit_code "$?" "START MONGOD SERVICE"
 
 # --- change local host ip address to 0.0.0.0
-sed -i 's/127.0.0.1/0.0.0.0' /etc/mongod.cnonf
+sed -i 's/127.0.0.1/0.0.0.0/' /etc/mongod.conf
 validate_exit_code "$?" "Updated Localhost to 0.0.0.0"
 
 

@@ -126,6 +126,10 @@ EOF
     aws route53 change-resource-record-sets \
         --hosted-zone-id "$HOSTED_ZONE" \
         --change-batch file://record.json
+
+    validate_exit_code $? "Added Route53 record"
+    log INFO "SUB DOMAIN NAME: $SUB_DOMAIN_NAME & IP: $IP_ADDRESS"
+    
 done
 
 
