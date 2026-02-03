@@ -3,10 +3,7 @@
 set -o errexit
 set -o pipefail
 set -o nounset
-trap 'log ERROR "Failed at line $LINE " ' ERR
-
-#SCRIPT_PATH="$0"
-#echo -e "SCRIPT path : $SCRIPT_PATH"
+trap '"log ERROR Failed at line $LINE "' ERR
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
@@ -14,7 +11,6 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 echo -e "SCRIPT path : $SCRIPT_PATH"
 echo -e "SCRIPT dir : $SCRIPT_DIR"
 
-#exit 1
 # --- LOG section
 LOG_DIR="/var/log/mangodb_logs"
 LOG_FILE="$(date +'%Y-%B-%d-%A_%H-%M-%S').log"
