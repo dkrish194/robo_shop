@@ -62,7 +62,7 @@ else
 fi
 
 log INFO "copy rabbitmq repo"
-cp "${SCRIPT_DIR}/rabbitmq.sh" /etc/yum.repos.d/rabbitmq.repo
+cp "${SCRIPT_DIR}/rabbitmq.repo" /etc/yum.repos.d/rabbitmq.repo
 
 log INFO "installing rabbitmq server"
 log_cmd dnf install rabbitmq-server -y
