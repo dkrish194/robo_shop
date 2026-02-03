@@ -5,14 +5,20 @@ set -o pipefail
 set -o nounset
 trap 'log ERROR "Failed at line $LINE " ' ERR
 
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+echo -e "SCRIPT path : $SCRIPT_PATH"
+echo -e "SCRIPT dir : $SCRIPT_DIR"
+
 # --- LOG section
-LOG_DIR="/var/log/mangodb_logs"
+LOG_DIR="/var/log/frontend_logs"
 LOG_FILE="$(date +'%Y-%B-%d-%A_%H-%M-%S').log"
 LOG_PATH="${LOG_DIR}/${LOG_FILE}"
 LOG_LEVEL="INFO"
 declare -A LEVELS=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
 # Get the directory where the script is actually located
-SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+#SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 MONGODB_HOST="mongodb.dasarikrishna.online"
 # --- Variables
 SUCCESS_CODE=0
@@ -25,6 +31,9 @@ function log() {
     local line="$(date '+%F %T') [$level] $msg"
     echo "$line" | tee -a "$LOG_PATH"
     logger -t my_script "$line"
+}
+function log_cmd() {
+    "$@" >>"$LOG_PATH" 2>&1
 }
 
 function validate_exit_code(){
@@ -55,27 +64,32 @@ fi
 
 
 log INFO "Enabling nginx version 1.24"
-dnf module enable nginx:1.24 -y
+dnf module enable nginx:1.24 -y &>> "$LOG_PATH"
 
 log INFO "Installing nginx package"
-dnf install nginx -y
+log_cmd dnf install nginx -y 
 
 log INFO "Enabling nginx service"
-systemctl enable nginx
+log_cmd    systemctl enable nginx
 
 log INFO "starting nginx service"
-systemctl start nginx 
+log_cmd systemctl start nginx 
 
 log INFO "removing the content from  nginx/html"
 rm -rf /usr/share/nginx/html/* 
 
 log INFO "download frontend code"
-curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
+log_cmd curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
 
 log INFO "unzip the nginx code"
 cd /usr/share/nginx/html 
-unzip /tmp/frontend.zip
+log_cmd unzip /tmp/frontend.zip
 
 log INFO "cp nginx.conf to /etc/nginx/"
+log INFO "SCRIPT DIR PATH: $SCRIPT_DIR"
 cp "${SCRIPT_DIR}/nginx.conf" /etc/nginx/nginx.conf
+
+log INFO "Restarting nginx service"
+systemctl restart nginx
+
 
