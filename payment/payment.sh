@@ -63,39 +63,39 @@ else
 fi
 
 
-log "installing python packages"
+log INFO "installing python packages"
 log_cmd dnf install python3 gcc python3-devel -y
 
-log "checking and add user if not exist"
+log INFO "checking and add user if not exist"
 if ! id roboshop ; then 
-    log "roboshop user not exist ,so adding"
+    log INFO "roboshop user not exist ,so adding"
     useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
 else
-    log "roboshop user already exist so skipping"
+    log INFO "roboshop user already exist so skipping"
 fi
 
-log "creating application directory"
+log INFO "creating application directory"
 mkdir -p /app
 
-log "removing code from app directory"
+log INFO "removing code from app directory"
 rm -rf /app/*
 
-log "downloading and unzipping payment code"
+log INFO "downloading and unzipping payment code"
 curl -L -o /tmp/payment.zip https://roboshop-artifacts.s3.amazonaws.com/payment-v3.zip 
 cd /app 
 unzip /tmp/payment.zip
 
-log "install packages from requirment"
+log INFO "install packages from requirment"
 
 cd /app 
 log_cmd pip3 install -r requirements.txt
 
-log "copy payment service file to /etc/systemd/system/payment.service"
+log INFO "copy payment service file to /etc/systemd/system/payment.service"
 cp "${SCRIPT_DIR}/payment.service" /etc/systemd/system/payment.service
 
-log "reload daemon"
+log INFO "reload daemon"
 systemctl daemon-reload
 
-log "enable and start service"
+log INFO "enable and start service"
 systemctl enable payment 
 systemctl start payment
