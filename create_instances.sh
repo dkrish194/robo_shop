@@ -102,11 +102,11 @@ for instance in "$@"; do
     if [[ $instance == "frontend" ]];then
         SUB_DOMAIN_NAME="$DOMAIN_NAME"
         log INFO "sub domain name: $SUB_DOMAIN_NAME"
+        IP_ADDRESS="$PUBLIC_IP_ADDRESS"
     else
         SUB_DOMAIN_NAME="${instance}.$DOMAIN_NAME"
         log INFO "sub domain name: $SUB_DOMAIN_NAME"
-
-
+        IP_ADDRESS="$PRIVATE_IP_ADDRESS"
     fi
 
     cat > record.json <<EOF
@@ -118,7 +118,7 @@ for instance in "$@"; do
         "Name": "$SUB_DOMAIN_NAME",
         "Type": "A",
         "TTL": 1,
-        "ResourceRecords": [{ "Value": "$PRIVATE_IP_ADDRESS" }]
+        "ResourceRecords": [{ "Value": "$IP_ADDRESS" }]
         }
                 }]
     }
