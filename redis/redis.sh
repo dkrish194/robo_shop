@@ -62,20 +62,20 @@ else
 fi
 
 
-log "Enablig redis version to 7"
+log INFO "Enablig redis version to 7"
 log_cmd dnf module enable redis:7 -y
 
-log "Installing Redis package"
+log INFO "Installing Redis package"
 log_cmd dnf install redis -y 
 
-log "updating localhost ip to 0.0.0.0 in /etc/redis/redis.conf"
+log INFO "updating localhost ip to 0.0.0.0 in /etc/redis/redis.conf"
 sed -i 's/127.0.0.1/0.0.0.0/' /etc/redis/redis.conf
 
-log "updating protocted mode to no"
+log INFO "updating protocted mode to no"
 sed -i '/protected-mode/c\protected-mode no' /etc/redis/redis.conf
 
-log "Enabling redis service"
+log INFO "Enabling redis service"
 systemctl enable redis 
 
-log "starting redis service"
+log INFO "starting redis service"
 systemctl start redis 

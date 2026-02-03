@@ -62,41 +62,41 @@ else
 fi
 
 
-log "enabling nodejs version"
+log INFO "enabling nodejs version"
 log_cmd dnf module enable nodejs:20 -y
 
-log "installing nodejs version"
+log INFO "installing nodejs version"
 log_cmd dnf install nodejs -y
 
-log "check and add roboshop user"
+log INFO "check and add roboshop user"
 if ! id roboshop ; then
-    log "roboshop user not exit, so adding"
+    log INFO "roboshop user not exit, so adding"
     useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
 else
-    log " roboshop user alread exist , so skipping"
+    log INFO " roboshop user alread exist , so skipping"
 fi
 
-log "creating application directory"
+log INFO "creating application directory"
 mkdir -p /app
 
-log "removing code from app directory"
+log INFO "removing code from app directory"
 rm -rf /app/*
 
-log "downloading and unzipping cart code"
+log INFO "downloading and unzipping cart code"
 log_cmd curl -L -o /tmp/cart.zip https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip 
 cd /app 
 log_cmd unzip /tmp/cart.zip
 
-log "installing npm packages"
+log INFO "installing npm packages"
 cd /app 
 log_cmd npm install 
 
-log "copy cart service file to /etc/systemd/system/cart.service"
+log INFO "copy cart service file to /etc/systemd/system/cart.service"
 cp "${SCRIPT_DIR}/cart.service" /etc/systemd/system/cart.service
 
-log "reload daemon"
+log INFO "reload daemon"
 systemctl daemon-reload
 
-log "enable and start service"
+log INFO "enable and start service"
 systemctl enable cart 
 systemctl start cart

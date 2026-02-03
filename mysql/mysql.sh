@@ -62,14 +62,14 @@ else
 fi
 
 
-log "Installing mysql package"
+log INFO "Installing mysql package"
 log_cmd dnf install mysql-server -y
 
-log "Enabling mysql service"
+log INFO "Enabling mysql service"
 systemctl enable mysqld
 
-log "starting mysql service"
+log INFO "starting mysql service"
 systemctl start mysqld  
 
-log "setting usr password"
+log INFO "setting usr password"
 mysql_secure_installation --set-root-pass RoboShop@1

@@ -62,16 +62,16 @@ else
 fi
 
 
-log "installing rabbitmq server"
+log INFO "installing rabbitmq server"
 log_cmd dnf install rabbitmq-server -y
 
-log "enabling rabbitmq service"
+log INFO "enabling rabbitmq service"
 systemctl enable rabbitmq-server
 
-log "starting rabbitmq service"
+log INFO "starting rabbitmq service"
 systemctl start rabbitmq-server
 
-log "adding roboshop user and setting permission for rabbitmq"
+log INFO "adding roboshop user and setting permission for rabbitmq"
 rabbitmqctl add_user roboshop roboshop123
 sleep 1
 rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"

@@ -34,7 +34,7 @@ function validate_exit_code(){
 
     # -- received Previoues command exit statue in $1 and  message in $2
     if (( $1 == SUCCESS_CODE ));then
-        echo -e " $2 .. SUCESS"
+        echo -e " $2 .. SUCCESS"
     else
         echo -e " $2 .. FAILURE"
     fi
@@ -88,20 +88,21 @@ for instance in "$@"; do
     validate_exit_code $? "wait for instance running"
 
     # - get private ip or public ip based on aws instance name
-    if [[ $instance == "frontend" ]];then
-        IP_ADDRESS=$(aws ec2 describe-instances \
+    
+        PUBLIC_IP_ADDRESS=$(aws ec2 describe-instances \
             --instance-ids "$INSTANCE_ID" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
-        echo -e "PUBLIC_IP is : $IP_ADDRESS"
-        SUB_DOMAIN_NAME="$DOMAIN_NAME"
-        log INFO "sub domain name: $SUB_DOMAIN_NAME"
-    else
-        IP_ADDRESS=$(aws ec2 describe-instances \
+        echo -e "PUBLIC_IP is : $PUBLIC_IP_ADDRESS"
+        PRIVATE_IP_ADDRESS=$(aws ec2 describe-instances \
             --instance-ids $INSTANCE_ID \
             --query 'Reservations[].Instances[].PrivateIpAddress' \
             --output text)
-        echo -e "PRIVATE_IP is : $IP_ADDRESS"
+        echo -e "PRIVATE_IP is : $PRIVATE_IP_ADDRESS"
+    if [[ $instance == "frontend" ]];then
+        SUB_DOMAIN_NAME="$DOMAIN_NAME"
+        log INFO "sub domain name: $SUB_DOMAIN_NAME"
+    else
         SUB_DOMAIN_NAME="${instance}.$DOMAIN_NAME"
         log INFO "sub domain name: $SUB_DOMAIN_NAME"
 
@@ -117,7 +118,7 @@ for instance in "$@"; do
         "Name": "$SUB_DOMAIN_NAME",
         "Type": "A",
         "TTL": 1,
-        "ResourceRecords": [{ "Value": "$IP_ADDRESS" }]
+        "ResourceRecords": [{ "Value": "$PRIVATE_IP_ADDRESS" }]
         }
                 }]
     }
@@ -128,7 +129,9 @@ EOF
         --change-batch file://record.json
 
     validate_exit_code $? "Added Route53 record"
-    log INFO "SUB DOMAIN NAME: $SUB_DOMAIN_NAME & IP: $IP_ADDRESS"
+    log INFO "SUB DOMAIN NAME: $SUB_DOMAIN_NAME "
+    log INFO "PRIVATE IP: $PRIVATE_IP_ADDRESS"
+    log INFO "PUBLIC IP: $PUBLIC_IP_ADDRESS"
     
 done
 

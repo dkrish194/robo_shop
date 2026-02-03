@@ -62,55 +62,55 @@ else
     exit 1
 fi
 
-log "installing maven"
+log INFO "installing maven"
 log_cmd dnf install maven -y
 
-log "checking and add user if not exist"
+log INFO "checking and add user if not exist"
 if ! id roboshop ; then 
-    log "roboshop user not exist ,so adding"
+    log INFO "roboshop user not exist ,so adding"
     useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
 else
-    log "roboshop user already exist so skipping"
+    log INFO "roboshop user already exist so skipping"
 fi
 
-log "creating application directory"
+log INFO "creating application directory"
 mkdir -p /app
 
-log "removing code from app directory"
+log INFO "removing code from app directory"
 rm -rf /app/*
 
-log "downloading and unzipping shipping code"
+log INFO "downloading and unzipping shipping code"
 curl -L -o /tmp/shipping.zip https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip 
 cd /app 
 unzip /tmp/shipping.zip
 
-log "doing clean package and renaming tar file"
+log INFO "doing clean package and renaming tar file"
 cd /app 
 mvn clean package 
 mv target/shipping-1.0.jar shipping.jar 
 
-log "copy shipping service file to /etc/systemd/system/shipping.service"
+log INFO "copy shipping service file to /etc/systemd/system/shipping.service"
 cp "${SCRIPT_DIR}/shipping.service" /etc/systemd/system/shipping.service
 
-log "reload daemon"
+log INFO "reload daemon"
 systemctl daemon-reload
 
-log "enable and start service"
+log INFO "enable and start service"
 systemctl enable shipping 
 systemctl start shipping
 
-log "installing mysql package"
+log INFO "installing mysql package"
 log_cmd dnf install mysql -y 
 
-log "checking mqsql daatabase if data not exist then load"
+log INFO "checking mqsql daatabase if data not exist then load"
 if ! mysql -h $MYSQL_HOST -uroot -pRoboShop@1 -e 'use cities'; then
-    log "data is not present in database , so Loading"
+    log INFO "data is not present in database , so Loading"
     mysql -h $MYSQL_HOST -uroot -pRoboShop@1 < /app/db/schema.sql 
     mysql -h $MYSQL_HOST -uroot -pRoboShop@1 < /app/db/app-user.sql 
     mysql -h $MYSQL_HOST -uroot -pRoboShop@1 < /app/db/master-data.sql
 else
-    log "data is already present in database , so skipping"
+    log INFO "data is already present in database , so skipping"
 fi
 
-log "restart shipping service"
+log INFO "restart shipping service"
 systemctl restart shipping
